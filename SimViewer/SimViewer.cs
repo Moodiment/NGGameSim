@@ -1,8 +1,10 @@
 using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using NGSim.Graphics;
-using Lidgren.Network;
+using NGSim.Network;
+using NGSim.Input;
 using NLog;
 
 namespace NGSim
@@ -10,17 +12,20 @@ namespace NGSim
 	public class SimViewer : Game
 	{
 		private GraphicsDeviceManager _graphics;
-		private NetClient _client;
+        private Client _client;
+		private SimulationManager _simManager;
 
-		private BasicEffect _effect;
-		private IndexBuffer _iBuffer;
-		private VertexBuffer _vBuffer;
-		private ArcBallCamera _camera;
+		private CModel _uavModel;
+		private CModel _tankModel;
+		private WorldModel _world;
 
 		public SimViewer() :
 			base()
 		{
+			Content.RootDirectory = "Content";
 			_graphics = new GraphicsDeviceManager(this);
+			IsFixedTimeStep = true;
+			TargetElapsedTime = TimeSpan.FromSeconds(1f / 30);
 		}
 
 		protected override void Initialize()
@@ -28,84 +33,47 @@ namespace NGSim
 			base.Initialize();
 
 			// Setup graphics device settings
-			_graphics.GraphicsProfile = GraphicsProfile.HiDef;
 			_graphics.PreferMultiSampling = true;
 			GraphicsDevice.PresentationParameters.MultiSampleCount = 4;
 			_graphics.ApplyChanges();
 
-			// Create basic shader
-			_effect = new BasicEffect(GraphicsDevice);
-			_effect.VertexColorEnabled = true;
-			_effect.LightingEnabled = false;
-			_effect.TextureEnabled = false;
+			// Initialize the custom input manager
+			InputManager.Initialize();
 
-			// Populate the vertex buffer
-			_vBuffer = new VertexBuffer(GraphicsDevice, VertexPositionColor.VertexDeclaration, 8, BufferUsage.None);
-			_vBuffer.SetData(new VertexPositionColor[8]
-			{
-				new VertexPositionColor(new Vector3(-1, -1, -1), Color.White),
-				new VertexPositionColor(new Vector3( 1, -1, -1), Color.Blue),
-				new VertexPositionColor(new Vector3( 1, -1,  1), Color.Yellow),
-				new VertexPositionColor(new Vector3(-1, -1,  1), Color.Red),
-				new VertexPositionColor(new Vector3(-1,  1, -1), Color.Green),
-				new VertexPositionColor(new Vector3( 1,  1, -1), Color.Magenta),
-				new VertexPositionColor(new Vector3( 1,  1,  1), Color.Cyan),
-				new VertexPositionColor(new Vector3(-1,  1,  1), Color.Pink)
-			});
-
-			// Populate the index buffer
-			_iBuffer = new IndexBuffer(GraphicsDevice, IndexElementSize.SixteenBits, 36, BufferUsage.None);
-			_iBuffer.SetData(new ushort[36]
-			{
-				6, 5, 1, 6, 1, 2, // +x
-				4, 7, 3, 4, 3, 0, // -x
-				4, 5, 6, 4, 6, 7, // +y
-				1, 0, 3, 1, 3, 2, // -y
-				7, 6, 2, 7, 2, 3, // +z
-				5, 4, 0, 5, 0, 1  // -z
-			});
+			// Create the world
+			_world = new WorldModel(GraphicsDevice, 50);
 
 			// Create the camera
-			_camera = new ArcBallCamera(GraphicsDevice, yaw: 0f, pitch: 0f);
+			CameraManager.Set(new ArcBallCamera(GraphicsDevice, distance: 20f, yaw: 0f, pitch: 45f), new ArcBallCameraBehavior());
+			(CameraManager.ActiveCamera as ArcBallCamera).MinDistance = 2f;
       
 			// Setup the network stuff
-			NetPeerConfiguration config = new NetPeerConfiguration("NGGameSim");
-			_client = new NetClient(config);
-			_client.Start();
-			_client.Connect("127.0.0.1", 8100);
+			_client = new Client();
+			_client.Connect();
+
+			// Create the simulation
+			_simManager = new SimulationManager();
 		}
 
-		double _lastSendTime = 0;
-		int _lastMessage = 0;
+		protected override void LoadContent()
+		{
+			base.LoadContent();
+
+			// Load the models
+			_uavModel = new CModel(GraphicsDevice, Content.Load<Model>("UAV"));
+			_tankModel = new CModel(GraphicsDevice, Content.Load<Model>("tank"));
+		}
+
 		protected override void Update(GameTime gameTime)
 		{
-			// Update the camera
-			_camera.Pitch += (float)gameTime.ElapsedGameTime.TotalSeconds * 3f;
-			_camera.Yaw += (float)gameTime.ElapsedGameTime.TotalSeconds * 12f;
-			_camera.Distance += (float)gameTime.ElapsedGameTime.TotalSeconds;
-      
-			// Send messages to the server
-			_lastSendTime += gameTime.ElapsedGameTime.TotalSeconds;
-			if (_lastSendTime > 1.0f) // Send a message every second
-			{
-				NetOutgoingMessage msg = _client.CreateMessage();
-				msg.Write(_lastMessage);
-				msg.Write("This is message " + (_lastMessage++));
-				_client.SendMessage(msg, NetDeliveryMethod.ReliableOrdered);
-				_lastSendTime = 0;
-			}
-      
-			// Process messages from the server, if needed
-			NetIncomingMessage inmsg;
-			while ((inmsg = _client.ReadMessage()) != null)
-			{
-				Console.WriteLine("Got Packet!");
-				if (inmsg.MessageType == NetIncomingMessageType.Data)
-				{
-					Console.WriteLine("Data: {{ '{0}' }}", inmsg.ReadString());
-				}
-				_client.Recycle(inmsg);
-			}
+			// Update the custom input manager
+			InputManager.Update(gameTime);
+
+			// Update the camera manager
+			CameraManager.Update(gameTime);
+
+			// Update the client (network manager)
+			_client.Update(gameTime);
 
 			base.Update(gameTime);
 		}
@@ -114,22 +82,21 @@ namespace NGSim
 		{
 			GraphicsDevice.Clear(Color.Black);
 
-			GraphicsDevice.SetVertexBuffer(_vBuffer);
-			GraphicsDevice.Indices = _iBuffer;
+			Camera camera = CameraManager.ActiveCamera;
 
-			_effect.View = _camera.ViewMatrix;
-			_effect.Projection = _camera.ProjectionMatrix;
-			_effect.World = Matrix.Identity;
+			_world.Draw(GraphicsDevice, camera);
+			_tankModel.Render(camera, Vector3.Right * 3 + Vector3.Up * 2);
+			_uavModel.Render(camera, Vector3.Left * 3 + Vector3.Up * 5);
 
-			_effect.CurrentTechnique.Passes[0].Apply();
-			GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 12);
+			// Render the simulation
+			_simManager.Render();
 
 			base.Draw(gameTime);
 		}
     
 		protected override void OnExiting(object sender, EventArgs args)
 		{
-			_client.Disconnect("Client Disconnecting...");
+			_client.Disconnect();
 
 			base.OnExiting(sender, args);
 		}
