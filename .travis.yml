@@ -9,7 +9,7 @@ before_install:
 install:
   - sudo ./monodevelop-6.2.0.1778-1.run
   - yes Y|sudo ./monogame-sdk.run 
-  # - sudo apt-get install -qq monodevelop libopenal-dev referenceassemblies-pcl ttf-mscorefonts-installer gtk-sharp2; # install needed packages for the monogame sdk
+  - sudo apt-get install -qq monodevelop libopenal-dev referenceassemblies-pcl ttf-mscorefonts-installer gtk-sharp2; # install needed packages for the monogame sdk
   # - sudo ./generate.sh && yes Y|sudo ./monogame-linux.run; # install monogame sdk
 script:
   - mono Protobuild.exe --build
