@@ -1,13 +1,16 @@
 language: csharp
-solution: Project.sln
+solution: NG_GameSim.sln
 before_install:
-  - wget http://www.monogame.net/releases/v3.4/MonoGame.Linux.zip
-  - unzip MonoGame.Linux.zip
-  - find * -type f -exec chmod 777 {} \; # lazy just make all executable
+  - wget https://github.com/cra0zy/monodevelop-run-installer/releases/download/6.2.0.1778-1/monodevelop-6.2.0.1778-1.run
+  - chmod +x monodevelop-6.2.0.1778-1.run
+  - wget http://www.monogame.net/releases/v3.6/monogame-sdk.run
+  - chmod +x monogame-sdk.run
   - mono Protobuild.exe --generate
 install:
-  - sudo apt-get install -qq monodevelop libopenal-dev referenceassemblies-pcl ttf-mscorefonts-installer gtk-sharp2; # install needed packages for the monogame sdk
-  - sudo ./generate.sh && yes Y|sudo ./monogame-linux.run; # install monogame sdk
+  - sudo ./monodevelop-6.2.0.1778-1.run
+  - sudo ./monogame-sdk.run
+  # - sudo apt-get install -qq monodevelop libopenal-dev referenceassemblies-pcl ttf-mscorefonts-installer gtk-sharp2; # install needed packages for the monogame sdk
+  # - sudo ./generate.sh && yes Y|sudo ./monogame-linux.run; # install monogame sdk
 script:
   - mono Protobuild.exe --build
-  - (cd Project/Content && mono /opt/monogame-pipeline/MGCB.exe /rebuild /@:"Content.mgcb" /outputDir:"../bin/Release/Content") 
+  # - (cd Project/Content && mono /opt/monogame-pipeline/MGCB.exe /rebuild /@:"Content.mgcb" /outputDir:"../bin/Release/Content") 
