@@ -9,7 +9,7 @@ before_install:
 install:
   - sudo apt-get install libopenal-dev
   - sudo apt-get install libfreeimage-dev
-  - sudo apt-get install -qq monodevelop referenceassemblies-pcl ttf-mscorefonts-installer gtk-sharp2 
+  - sudo apt-get install monodevelop referenceassemblies-pcl ttf-mscorefonts-installer gtk-sharp2 
   - sudo ./monodevelop-6.2.0.1778-1.run
   - yes Y|sudo ./monogame-sdk.run 
   # - sudo ./generate.sh && yes Y|sudo ./monogame-linux.run; # install monogame sdk
