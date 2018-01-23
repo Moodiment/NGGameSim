@@ -5,16 +5,15 @@ before_install:
   - chmod +x monodevelop-6.2.0.1778-1.run
   - wget http://www.monogame.net/releases/v3.6/monogame-sdk.run
   - chmod +x monogame-sdk.run
-  - mono Protobuild.exe --generate
-  # - sudo apt-get install -qq monodevelop libopenal-dev referenceassemblies-pcl ttf-mscorefonts-installer gtk-sharp2; # install needed packages for the monogame sdk
   - sudo apt-get install gtk-sharp3
 install:
   - sudo apt-get install libopenal-dev
   - sudo apt-get install libfreeimage-dev
-  - sudo apt-get install -qq monodevelop libopenal-dev referenceassemblies-pcl ttf-mscorefonts-installer gtk-sharp2; 
+  - sudo apt-get install -qq monodevelop referenceassemblies-pcl ttf-mscorefonts-installer gtk-sharp2 
   - sudo ./monodevelop-6.2.0.1778-1.run
   - yes Y|sudo ./monogame-sdk.run 
   # - sudo ./generate.sh && yes Y|sudo ./monogame-linux.run; # install monogame sdk
 script:
+  - mono Protobuild.exe --generate
   - mono Protobuild.exe --build
   # - (cd Project/Content && mono /opt/monogame-pipeline/MGCB.exe /rebuild /@:"Content.mgcb" /outputDir:"../bin/Release/Content") 
