@@ -7,6 +7,6 @@
   </Platform>
   
   <Platform Type="Linux">
-    <Binary Name="Eto.Gtk.dll" Path="DLL/Eto.Gtk.dll" />
+    <Binary Name="Eto.Gtk2.dll" Path="DLL/Eto.Gtk2.dll" />
   </Platform>
 </ExternalProject>
