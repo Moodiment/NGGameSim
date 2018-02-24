@@ -13,6 +13,7 @@ install:
   - yes Y | sudo ./monogame-sdk.run 
   # - sudo ./generate.sh && yes Y|sudo ./monogame-linux.run; # install monogame sdk
 script:
+  - mono Protobuild.exe --sync
   - mono Protobuild.exe --generate Linux
   - mono Protobuild.exe --build Linux
   # - (cd Project/Content && mono /opt/monogame-pipeline/MGCB.exe /rebuild /@:"Content.mgcb" /outputDir:"../bin/Release/Content") 
