@@ -14,7 +14,6 @@
 #---------------------------------- Content ---------------------------------#
 
 #begin tank.obj
-/importer:OpenAssetImporter
 /processor:ModelProcessor
 /processorParam:ColorKeyColor=0,0,0,0
 /processorParam:ColorKeyEnabled=True
@@ -33,7 +32,6 @@
 /build:tank.obj
 
 #begin UAV.obj
-/importer:OpenAssetImporter
 /processor:ModelProcessor
 /processorParam:ColorKeyColor=0,0,0,0
 /processorParam:ColorKeyEnabled=True
@@ -52,7 +50,6 @@
 /build:UAV.obj
 
 #begin checkers.png
-/importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
 /processorParam:ColorKeyEnabled=True
@@ -64,7 +61,6 @@
 /build:checkers.png
 
 #begin debugfont.spritefont
-/importer:FontDescriptionImporter
 /processor:FontDescriptionProcessor
 /processorParam:PremultiplyAlpha=True
 /processorParam:TextureFormat=Compressed
