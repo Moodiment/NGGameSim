@@ -10,16 +10,12 @@ namespace NGSim
 		public static void Main(string[] args)
 		{
 			var pf = Platform.Detect;
-			if (pf.IsWpf)
-			{
+			
 				Console.WriteLine("Using wpf...");
 				pf.Add(typeof(StateInfoTextArea), () => new StateInfoTextAreaHandler());
 				pf.Add(typeof(NetworkInfoTextArea), () => new NetworkInfoTextAreaHandler());
-			} else
-			{
+			
 				Console.WriteLine("Platform not supported...");
-				return;
-			}
 
 			Application app = new Application();
 
